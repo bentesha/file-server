@@ -4,6 +4,7 @@ const
     busboy = require('connect-busboy'),
     path = require('path'),
     cors = require('cors')
+    config = require('./config')
     ;
 
 const app = express();
@@ -22,7 +23,6 @@ app.post('/upload', (request, response) => {
     });
 });
 
-const port = 4300; //Listen on port 4300
-const server = app.listen(port, () => {
+const server = app.listen(config.port, () => {
     console.log('File server listening on port: ' + server.address().port);
 });
