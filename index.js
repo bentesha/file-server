@@ -34,10 +34,8 @@ app.post('/upload', (request, response) => {
                 format: ext.replace('.', '').toUpperCase()
             };
             mongoose.connect(config.dataSource).then(() => {
-                console.log('Connection opened successfully');
                 return fileStore.saveFile(attributes);
             }).then((savedFile) => {
-                console.log('File has saved to database');
                 let url = `${request.protocol}://${request.get('host')}/uploaded/${savedFile.name}`;
                 let json = {
                     size: savedFile.size,
@@ -49,7 +47,6 @@ app.post('/upload', (request, response) => {
             }).catch((error) => {
                 //Ups! Something bad happened. Was info was not added to the database
                 //TODO: delete downloaded file from the file system
-                console.log('Error saving file :' + error);
                 response.sendStatus(500);
             });
         })
