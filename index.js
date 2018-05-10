@@ -4,7 +4,11 @@ const
     busboy = require('connect-busboy'),
     path = require('path'),
     cors = require('cors')
-    config = require('./config')
+    config = require('./config'),
+    shortid = require('shortid'),
+    moment = require('moment'),
+    fileStore = require('./store/file'),
+    mongoose = require('mongoose')
     ;
 
 const app = express();
@@ -15,10 +19,39 @@ app.use(express.static(path.join(`${__dirname}/public`)));
 app.post('/upload', (request, response) => {
     request.pipe(request.busboy);
     request.busboy.on('file', (fieldName, file, fileName) => {
-        let stream = fs.createWriteStream(`./public/uploaded/${fileName}`);
+        let ext = path.extname(fileName);
+        if(ext == null) { ext = ''; }
+        //Generate a random file name
+        fileName = `${shortid.generate()}${ext}`;
+        let filePath = `${__dirname}/public/uploaded/${fileName}`;
+        let stream = fs.createWriteStream(filePath);
         file.pipe(stream);
         stream.on('close', () => {
-            response.send({message: 'File uploaded successfully.'});
+            let attributes = {
+                name: fileName,
+                size: fs.statSync(filePath).size,
+                date: moment(),
+                format: ext.replace('.', '').toUpperCase()
+            };
+            mongoose.connect(config.dataSource).then(() => {
+                console.log('Connection opened successfully');
+                return fileStore.saveFile(attributes);
+            }).then((savedFile) => {
+                console.log('File has saved to database');
+                let url = `${request.protocol}://${request.get('host')}/uploaded/${savedFile.name}`;
+                let json = {
+                    size: savedFile.size,
+                    date: savedFile.date,
+                    format: savedFile.format,
+                    url: url
+                };
+                response.send(json);
+            }).catch((error) => {
+                //Ups! Something bad happened. Was info was not added to the database
+                //TODO: delete downloaded file from the file system
+                console.log('Error saving file :' + error);
+                response.sendStatus(500);
+            });
         })
     });
 });

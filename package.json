@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --exit"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +12,13 @@
     "connect-busboy": "0.0.2",
     "cors": "^2.8.4",
     "express": "^4.16.3",
-    "fs-extra": "^6.0.0"
+    "fs-extra": "^6.0.0",
+    "moment": "^2.22.1",
+    "mongoose": "^5.0.17",
+    "shortid": "^2.2.8"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.1.1"
   }
 }
