@@ -14,14 +14,14 @@ const fileExists = path => {
 
 const router = express.Router();
 
-router.get("/:file", ({ params }, response, next) => {
-  const file = params.file;
+router.get("/:file", (request, response, next) => {
+  const file = request.params.file;
   if(path.extname(file).toLowerCase() === '.pdf'){
     //Prevent directly opening pdf files
     return next();
   }
-  const fileName = path.join(config.uploadDir, file);
-  response.sendFile(fileName);
+  const redirectUrl = `${request.baseUrl}/${file}/m`;
+  response.redirect(redirectUrl);
 });
 
 router.get("/:file/:size", async (request, response, next) => {
