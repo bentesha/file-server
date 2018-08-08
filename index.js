@@ -23,31 +23,17 @@ app.post('/upload', (request, response) => {
         if(ext == null) { ext = ''; }
         //Generate a random file name
         fileName = `${shortid.generate()}${ext}`;
-        let filePath = `${__dirname}/public/uploaded/${fileName}`;
-        let stream = fs.createWriteStream(filePath);
+        const filePath = `${__dirname}/public/uploaded/${fileName}`;
+        const stream = fs.createWriteStream(filePath);
         file.pipe(stream);
         stream.on('close', () => {
-            let attributes = {
+            const url = `${request.protocol}://${request.get('host')}/uploaded/${fileName}`;
+            response.json({
                 name: fileName,
                 size: fs.statSync(filePath).size,
-                date: moment(),
-                format: ext.replace('.', '').toUpperCase()
-            };
-            mongoose.connect(config.dataSource).then(() => {
-                return fileStore.saveFile(attributes);
-            }).then((savedFile) => {
-                let url = `${request.protocol}://${request.get('host')}/uploaded/${savedFile.name}`;
-                let json = {
-                    size: savedFile.size,
-                    date: savedFile.date,
-                    format: savedFile.format,
-                    url: url
-                };
-                response.send(json);
-            }).catch((error) => {
-                //Ups! Something bad happened. Was info was not added to the database
-                //TODO: delete downloaded file from the file system
-                response.sendStatus(500);
+                date: moment().format(),
+                format: ext.replace('.', '').toUpperCase(),
+                url
             });
         })
     });
