@@ -11,7 +11,7 @@ router.use(busboy());
 router.post("/", (request, response) => {
   request.pipe(request.busboy);
   request.busboy.on("file", (fieldName, file, fileName) => {
-    const ext = path.extname(fileName) || "";
+    const ext = path.extname(fileName);
     //Generate a random file name
     fileName = `${shortid.generate()}${ext}`;
     const filePath = `${__dirname}/public/uploaded/${fileName}`;
