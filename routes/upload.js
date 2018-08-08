@@ -13,7 +13,7 @@ router.post("/", (request, response) => {
   request.busboy.on("file", (fieldName, file, fileName) => {
     const ext = path.extname(fileName) || "";
     //Generate a random file name
-    fileName = `${shortid.generate()}.${ext}`;
+    fileName = `${shortid.generate()}${ext}`;
     const filePath = `${__dirname}/public/uploaded/${fileName}`;
     const stream = fs.createWriteStream(filePath);
     file.pipe(stream);
