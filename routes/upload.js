@@ -4,6 +4,7 @@ const fs = require("fs-extra");
 const busboy = require("connect-busboy");
 const shortid = require("shortid");
 const moment = require("moment");
+const config = require("../config");
 
 const router = express.Router();
 router.use(busboy());
@@ -14,11 +15,11 @@ router.post("/", (request, response) => {
     const ext = path.extname(fileName);
     //Generate a random file name
     fileName = `${shortid.generate()}${ext}`;
-    const filePath = `${__dirname}/public/uploaded/${fileName}`;
+    const filePath = path.join(config.uploadDir, fileName);
     const stream = fs.createWriteStream(filePath);
     file.pipe(stream);
     stream.on("close", () => {
-      const url = `${request.protocol}://${request.host}/uploaded/${fileName}`;
+      const url = `${request.protocol}://${request.get("host")}/uploaded/${fileName}`;
       response.json({
         name: fileName,
         size: fs.statSync(filePath).size,
