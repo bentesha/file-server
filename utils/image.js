@@ -6,7 +6,8 @@ const SIZES = {
   s: 140,
   m: 260,
   l: 500,
-  xl: 900
+  xl: 900,
+  avatar: 180
 };
 
 /**
@@ -44,8 +45,8 @@ exports.resizeImage = (inputPath, outputPath, size) => {
   );
 
   return sharp(inputPath)
-    .resize(SIZES[size], Number.MAX_VALUE)
-    .max()
+    .resize(SIZES[size], size === "avatar" ? SIZES[size] : null)
+    [size === "avatar" ? "crop" : "max"]()
     .jpeg()
     .toFile(outputPath);
 };
