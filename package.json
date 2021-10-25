@@ -15,7 +15,7 @@
     "fs-extra": "^6.0.0",
     "moment": "^2.22.1",
     "morgan": "^1.9.1",
-    "sharp": "^0.20.5",
+    "sharp": "^0.29.2",
     "shortid": "^2.2.8"
   },
   "devDependencies": {
