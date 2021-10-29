@@ -1,6 +1,9 @@
+const { config } = require('dotenv')
+
+config() // Load .env file
 
 module.exports = {
-  port: 8000,
-  uploadDir: __dirname + '/files',
-  resizedImagesDir: __dirname + '/files/resized'
+  port: process.env.PORT || 8000,
+  uploadDir: process.env.UPLOAD_DIR || __dirname + '/files',
+  resizedImagesDir: process.env.RESIZED_IMAGE_DIR || __dirname + '/files/resized'
 }

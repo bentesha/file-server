@@ -11,6 +11,7 @@
   "dependencies": {
     "connect-busboy": "0.0.2",
     "cors": "^2.8.4",
+    "dotenv": "^10.0.0",
     "express": "^4.16.3",
     "fs-extra": "^6.0.0",
     "glob": "^7.1.2",
