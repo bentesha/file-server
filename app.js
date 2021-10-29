@@ -15,7 +15,7 @@ glob
   .sync('./controllers/*.js')
   .map((controller) => ({
     path: '/' + path.basename(controller, '.js'),
-    middleware: require(controller),
+    middleware: require(controller)
   }))
   .forEach((route) => app.use(route.path, route.middleware))
 
