@@ -45,8 +45,19 @@ controller.image = async (request, response, next) => {
   response.sendFile(thumbnail)
 }
 
+controller.audio = async (request, response) => {
+  const file = request.params.file
+  const filePath = path.join(config.uploadDir, file)
+
+  if (!fs.existsSync) {
+    return response.sendStatus(404)
+  }
+  response.sendFile(filePath)
+}
+
 const router = express.Router()
 
 router.get('/image/:file', awaited(controller.image))
+router.get('/audio/:file', awaited(controller.audio))
 
 module.exports = router
