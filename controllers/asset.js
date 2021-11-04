@@ -1,20 +1,18 @@
 const express = require('express')
 const config = require('../config')
+const { promisify } = require('util')
 const path = require('path')
 const fs = require('fs')
 const { hashObject } = require('../utils/crypto')
 const { awaited } = require('../utils/express')
 const sharp = require('sharp')
 const Joi = require('joi')
+const mp3Duration = promisify(require('mp3-duration'))
 
 const controller = {}
 
 controller.image = async (request, response, next) => {
-  const file = path.join(config.uploadDir, request.params.file)
-  if (!fs.existsSync(file)) {
-    return response.sendStatus(404)
-  }
-
+  const file = request.filePath
   // Validate query params
   const schema = Joi.object({
     height: Joi.number().min(16),
@@ -41,23 +39,40 @@ controller.image = async (request, response, next) => {
       .resize(options)
       .toFile(thumbnail)
   }
-  
   response.sendFile(thumbnail)
 }
 
 controller.audio = async (request, response) => {
-  const file = request.params.file
-  const filePath = path.join(config.uploadDir, file)
+  const { filePath } = request
+  response.sendFile(filePath)
+}
 
-  if (!fs.existsSync) {
+controller.info = async (request, response) => {
+  const { filePath } = request
+  const stat = promisify(fs.stat)
+  const info = await stat(filePath)
+  const result = { size: info.size }
+  if (path.extname(filePath) === '.mp3') {
+    result.duration = await mp3Duration(filePath)
+  }
+  response.json(result)
+}
+
+controller.validateFile = async (request, response, next) => {
+  const filePath = path.join(config.uploadDir, request.params.file)
+  const stat = promisify(fs.stat)
+  if (!fs.existsSync(filePath)) {
     return response.sendStatus(404)
   }
-  response.sendFile(filePath)
+  request.filePath = filePath
+  next()
 }
 
 const router = express.Router()
 
+router.param('file', awaited(controller.validateFile))
 router.get('/image/:file', awaited(controller.image))
 router.get('/audio/:file', awaited(controller.audio))
+router.get('/info/:file', awaited(controller.info))
 
 module.exports = router
