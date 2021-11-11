@@ -14,6 +14,7 @@
     "cors": "^2.8.4",
     "dotenv": "^10.0.0",
     "express": "^4.16.3",
+    "ffmpeg": "^0.0.4",
     "fs-extra": "^6.0.0",
     "glob": "^7.1.2",
     "joi": "^17.4.2",
@@ -21,7 +22,8 @@
     "morgan": "^1.9.1",
     "mp3-duration": "^1.1.0",
     "sharp": "^0.29.2",
-    "shortid": "^2.2.8"
+    "shortid": "^2.2.8",
+    "ytdl-core": "^4.9.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
