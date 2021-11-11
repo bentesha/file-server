@@ -2,9 +2,7 @@ const client = require('amqplib')
 const config = require('../config')
 
 exports.connect = function () {
-  return client.connect({
-    host: config.rabbitmq.host,
-  })
+  return client.connect(`amqp://${config.rabbitmq.host}`)
 }
 
 exports.initQueues = async function () {
