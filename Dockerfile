@@ -5,6 +5,7 @@ WORKDIR /app
 ENV PORT=8000
 ENV UPLOAD_DIR='/files/'
 ENV RESIZED_IMAGE_DIR='/files/resized/'
+ENV RABBITMQ_HOST='localhost'
 
 COPY . /app
 
