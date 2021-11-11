@@ -71,6 +71,9 @@ async function downloadTask(msg, channel) {
 async function main() {
   const conn = await connect()
   const channel = await conn.createChannel()
+  await channel.assertQueue(QUEUE_TASK)
+  await channel.assertQueue(QUEUE_COMPLETE)
+  await channel.assertQueue(QUEUE_PROGRESS, { messageTtl: 1000 })
   channel.prefetch(MAX_CONCURRENCY)
   channel.consume(
     QUEUE_TASK,
