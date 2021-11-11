@@ -9,6 +9,7 @@ ENV RABBITMQ_HOST='localhost'
 
 COPY . /app
 
+RUN apk update && apk add ffmpeg
 RUN npm install
 
 EXPOSE ${PORT}
