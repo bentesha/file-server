@@ -11,20 +11,29 @@ const QUEUE_COMPLETE = 'downloaded'
 const QUEUE_PROGRESS = 'download_progress'
 const MAX_CONCURRENCY = 5 // Downloads max 5 videos concurrently
 
-
 // Downloads video from YouTube and convert
 // them into mp3 files
 async function downloadTask(msg, channel) {
   const task = JSON.parse(msg.content.toString('utf8'))
+
+  // Helper function to update task progress
+  const updateProgress = (current, total) =>
+    postMessage({ task, current, total }, channel, QUEUE_PROGRESS)
+
   console.log('Start processing task:', task.id)
+  updateProgress(0, 1)
   const videoId = task.videoId
   const link = `https://www.youtube.com/watch?v=${videoId}`
   const info = await ytdl.getBasicInfo(link, {
     format: 'audio',
     quality: 'highest',
   })
-  const title = info.videoDetails.title
-  const description = info.videoDetails.description
+
+  // Name can have max 250 chars
+  task.name = (task.name || info.videoDetails.title || '').slice(0, 250)
+  task.description = task.description || info.videoDetails.description
+  updateProgress(0, 1) // Update progress with new video info
+
   const basename = shortid.generate()
   const fileName = `${basename}.mp4`
   const mp4File = path.join(config.uploadDir, fileName)
@@ -34,14 +43,10 @@ async function downloadTask(msg, channel) {
     ytdl(link, { format: 'audio', quality: 'highest' })
       .on('error', (error) => {
         console.log('Download video error:', videoId)
-        console.log(error)
-        const msg = { task, success: false, message: error.message }
-        postMessage(msg, channel, QUEUE_COMPLETE)
         reject(error)
       })
       .on('progress', (_, current, total) => {
-        const msg = { task, current, total }
-        postMessage(msg, channel, QUEUE_PROGRESS)
+        updateProgress(current, total)
       })
       .on('finish', resolve)
       .pipe(fs.createWriteStream(mp4File))
@@ -80,6 +85,9 @@ async function main() {
     (msg) =>
       downloadTask(msg, channel)
         .catch((error) => {
+          const task = JSON.parse(msg.content.toString())
+          const content = { task, success: false, message: error.message }
+          postMessage(content, channel, QUEUE_COMPLETE)
           console.log(error)
         })
         .then(() => channel.ack(msg)),
