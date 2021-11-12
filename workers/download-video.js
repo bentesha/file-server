@@ -63,9 +63,7 @@ async function downloadTask(msg, channel) {
 
   const result = {
     task,
-    title,
     success: true,
-    description: description || '',
     file: mp3FileName,
   }
 
