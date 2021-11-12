@@ -5,6 +5,7 @@ const fs = require('fs')
 const config = require('../config')
 const ffmpeg = require('ffmpeg')
 const { connect, postMessage } = require('../utils/queue')
+const axios = require('axios').default
 
 const QUEUE_TASK = 'download'
 const QUEUE_COMPLETE = 'downloaded'
@@ -13,7 +14,7 @@ const MAX_CONCURRENCY = 5 // Downloads max 5 videos concurrently
 
 // Downloads video from YouTube and convert
 // them into mp3 files
-async function downloadTask(msg, channel) {
+async function downloadYouTube(msg, channel) {
   const task = JSON.parse(msg.content.toString('utf8'))
 
   // Helper function to update task progress
@@ -71,6 +72,48 @@ async function downloadTask(msg, channel) {
   postMessage(result, channel, QUEUE_COMPLETE)
 }
 
+async function downloadMp3(msg, channel) {
+  const task = JSON.parse(msg.content.toString('utf8'))
+
+  // Helper function to update task progress
+  const updateProgress = (current, total) =>
+    postMessage({ task, current, total }, channel, QUEUE_PROGRESS)
+
+  console.log('Processing audio link:', task.id)
+  const fileName = await new Promise((resolve, reject) => {
+    updateProgress(0, 1)
+    const fileName = shortid.generate() + '.mp3'
+    const file = path.join(config.uploadDir, fileName)
+    console.log('Start downloading link:', task.id)
+    axios.get(task.url, { responseType: 'stream' }).then((response) => {
+      const total = response.headers['content-length']
+      const stream = response.data
+      let downloaded = 0
+      stream.on('data', (buffer) => {
+        downloaded += buffer.length
+        updateProgress(downloaded, total)
+      })
+      stream.on('error', reject)
+      stream.on('end', () => resolve(fileName))
+      stream.pipe(fs.createWriteStream(file))
+    }).catch(reject)
+  })
+  console.log('Mp3 download complete', task.id)
+  const result = {
+    task,
+    success: true,
+    file: fileName,
+  }
+  postMessage(result, channel, QUEUE_COMPLETE)
+}
+
+async function download(msg, channel) {
+  const task = JSON.parse(msg.content.toString('utf8'))
+  if (task.videoId) return downloadYouTube(msg, channel)
+  else if (task.url) return downloadMp3(msg, channel)
+  else throw new Error('Invalid download task: videoId or url is missing.')
+}
+
 async function main() {
   const conn = await connect()
   const channel = await conn.createChannel()
@@ -81,7 +124,7 @@ async function main() {
   channel.consume(
     QUEUE_TASK,
     (msg) =>
-      downloadTask(msg, channel)
+      download(msg, channel)
         .catch((error) => {
           const task = JSON.parse(msg.content.toString())
           const content = { task, success: false, message: error.message }
