@@ -53,7 +53,8 @@ controller.info = async (request, response) => {
   const info = await stat(filePath)
   const result = { size: info.size }
   if (path.extname(filePath) === '.mp3') {
-    result.duration = await mp3Duration(filePath)
+    const duration = await mp3Duration(filePath)
+    result.duration = Math.round(duration * 1000) // Convert duration to milliseconds
   }
   response.json(result)
 }
